@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pizzaria Sabor & Massa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-stone-50 text-stone-800">
+
+    <script>
+        const CONFIG = {
+            whatsappNumber: "5511914781889", 
+            storeName: "Pizzaria Sabor & Massa",
+        };
+    </script>
+
+    <header class="bg-orange-700 text-white p-4 shadow-lg flex items-center gap-4">
+        <img src="images/logo.jpg" alt="Logotipo" class="w-20 h-20 rounded-lg border-2 border-white object-cover" onerror="this.onerror=null; this.src='https://via.placeholder.com/80';">
+        <div class="flex-1 text-center">
+            <h1 class="text-2xl font-bold">Pizzaria Sabor & Massa</h1>
+            <p class="text-sm opacity-80">As melhores pizzas e esfihas da região</p>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto p-4" id="menu"></main>
+
+    <button id="cart-btn" class="fixed bottom-5 right-5 bg-green-600 text-white p-4 rounded-full shadow-xl hover:bg-green-700 transition">
+        <i class="fa fa-cart-shopping text-xl"></i>
+        <span id="cart-count" class="absolute -top-2 -right-2 bg-red-600 text-xs w-6 h-6 flex items-center justify-center rounded-full">0</span>
+    </button>
+
+    <div id="cart-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-xl p-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold">Seu Pedido</h2>
+                <button id="clear-cart-btn" class="text-red-600 text-sm hover:underline">Limpar tudo</button>
+            </div>
+            
+            <div id="cart-items" class="space-y-4"></div>
+            
+            <div class="mt-6 border-t pt-4 space-y-3">
+                <input type="text" id="customer-name" placeholder="Seu Nome" class="w-full border p-2 rounded">
+                <input type="tel" id="customer-phone" placeholder="Seu Telefone (WhatsApp)" class="w-full border p-2 rounded">
+                <input type="text" id="customer-address" placeholder="Seu Endereço Rua, número e bairro" class="w-full border p-2 rounded">
+                
+                <div class="grid grid-cols-2 gap-2">
+                    <select id="payment-method" class="border p-2 rounded">
+                        <option value="">Forma de Pagamento</option>
+                        <option value="Pix">Pix</option>
+                        <option value="Cartão de Crédito">Cartão de Crédito</option>
+                        <option value="Cartão de Débito">Cartão de Débito</option>
+                        <option value="Dinheiro">Dinheiro</option>
+                    </select>
+                    <select id="extras-checkout" class="border p-2 rounded">
+                        <option value="nao">Sem talheres</option>
+                        <option value="sim">Preciso de talheres</option>
+                    </select>
+                </div>
+
+                <div id="pix-container" class="hidden mt-4 p-3 bg-blue-50 border border-blue-200 rounded text-xs">
+                    <p class="font-bold text-blue-800 mb-2">Código Pix Copia e Cola:</p>
+                    <textarea id="pix-code" readonly class="w-full p-2 border rounded text-gray-600 text-[10px] mb-2 h-20">00020126850014br.gov.bcb.pix0136ff439919-4119-405d-838a-6c3e3efd8b550223RENE_DE_CAMPOS_SALDIVAR5204000053039865802BR5909Kast_Card6009Sao_Paulo62290525961bf162c83d4e0b90b842f40630401D6</textarea>
+                    <button type="button" onclick="copyPix()" class="w-full bg-blue-600 text-white py-2 rounded font-bold hover:bg-blue-700">Copiar Código Pix</button>
+                </div>
+                
+                <input type="text" id="order-notes" placeholder="Observações (Escreva os sabores da meio a meio)" class="w-full border p-2 rounded">
+
+                <div class="flex justify-between font-bold text-lg mt-4">
+                    <span>Total:</span>
+                    <span id="cart-total">R$ 0,00</span>
+                </div>
+                <button id="checkout-btn" class="w-full bg-orange-700 text-white py-3 mt-4 rounded-lg font-bold hover:bg-orange-800 transition">
+                    Enviar Pedido via WhatsApp
+                </button>
+                <button id="close-modal" class="w-full mt-2 text-stone-500 hover:text-stone-700">Continuar comprando</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const menuData = [
+            { category: "Pizzas Tradicionais", items: [
+                { id: 1, name: "Calabresa", price: 45.00, desc: "Calabresa fatiada, cebola e molho.", img: "calabresa.jpg" },
+                { id: 2, name: "Margherita", price: 42.00, desc: "Mussarela, tomate em rodelas e manjericão fresco.", img: "margherita.jpg" },
+                { id: 3, name: "Mussarela", price: 42.00, desc: "Mussarela, tomate em rodelas.", img: "mussarela.jpg" },
+                { id: 4, name: "Napolitana", price: 42.00, desc: "Mussarela, tomate e manjericão.", img: "napolitana.jpg" },
+				{ id: 11, name: "aliche", price: 55.00, desc: "Mussarela, tomate, aliche e molho.", img: "aliche.jpg" },
+				{ id: 27, name: "Portuguesa", price: 55.00, desc: "Mussarela, presunto, cebola, ervilha.", img: "portuguesa.jpg" },
+				{ id: 99, name: "Meio a Meio", price: 50.00, desc: "No final do pedido escreva os sabores desejado.", img: "meioameio.jpg" },
+				
+            ]},
+            { category: "Pizzas Especiais", items: [
+                { id: 5, name: "Frango com Catupiry", price: 55.00, desc: "Frango desfiado, catupiry original e milho.", img: "frango.jpg" },
+                { id: 6, name: "Quatro Queijos", price: 58.00, desc: "Mussarela, provolone, gorgonzola e parmesão.", img: "quatro-queijos.jpg" }
+            ]},
+            { category: "Esfihas", items: [
+                { id: 7, name: "Esfiha de Carne", price: 6.00, desc: "Carne temperada.", img: "esfiha-carne.jpg" },
+                { id: 8, name: "Esfiha de Queijo", price: 6.50, desc: "Queijo temperado.", img: "esfiha-queijo.jpg" }
+            ]},
+            { category: "Bebidas", items: [
+                { id: 9, name: "Coca-Cola 2L", price: 12.00, desc: "Gelada e refrescante.", img: "coca-cola.jpg" },
+                { id: 10, name: "Suco de Uva Integral", price: 10.00, desc: "Suco 100% natural.", img: "suco-uva.jpg" }
+            ]}
+        ];
+
+        let cart = {}; 
+
+        function copyPix() {
+            const copyText = document.getElementById("pix-code");
+            copyText.select();
+            document.execCommand("copy");
+            alert("Código Pix copiado!");
+        }
+
+        document.getElementById('payment-method').addEventListener('change', function() {
+            document.getElementById('pix-container').classList.toggle('hidden', this.value !== 'Pix');
+        });
+
+        const menuContainer = document.getElementById('menu');
+        menuData.forEach(cat => {
+            const section = document.createElement('section');
+            section.className = "mb-8";
+            section.innerHTML = `<h2 class="text-2xl font-bold mb-4 border-b-2 border-orange-200 pb-2">${cat.category}</h2>
+                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>`;
+            cat.items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-lg shadow-sm flex items-center gap-4";
+                card.innerHTML = `
+                    <img src="images/${item.img}" alt="${item.name}" onerror="this.onerror=null; this.src='https://via.placeholder.com/80';" class="w-20 h-20 rounded-md object-cover">
+                    <div class="flex-1">
+                        <h3 class="font-bold">${item.name}</h3>
+                        <p class="text-sm text-stone-600">${item.desc}</p>
+                        <p class="font-bold text-orange-700">R$ ${item.price.toFixed(2)}</p>
+                    </div>
+                    <div class="flex items-center gap-2 border rounded-lg p-1">
+                        <button onclick="updateQty(${item.id}, -1)" class="px-2 bg-stone-100 hover:bg-stone-200">-</button>
+                        <span id="qty-${item.id}" class="w-6 text-center font-bold">0</span>
+                        <button onclick="updateQty(${item.id}, 1)" class="px-2 bg-orange-100 hover:bg-orange-200">+</button>
+                    </div>
+                `;
+                section.querySelector('.grid').appendChild(card);
+            });
+            menuContainer.appendChild(section);
+        });
+
+        function updateQty(id, delta) {
+            if (!cart[id]) {
+                const item = menuData.flatMap(c => c.items).find(i => i.id === id);
+                cart[id] = { item, qty: 0 };
+            }
+            cart[id].qty = Math.max(0, cart[id].qty + delta);
+            if (cart[id].qty === 0) delete cart[id];
+            renderUI();
+        }
+
+        function renderUI() {
+            let total = 0, totalQty = 0;
+            const cartItemsContainer = document.getElementById('cart-items');
+            cartItemsContainer.innerHTML = '';
+            menuData.flatMap(c => c.items).forEach(item => {
+                const qty = cart[item.id] ? cart[item.id].qty : 0;
+                const span = document.getElementById(`qty-${item.id}`);
+                if (span) span.innerText = qty;
+            });
+            Object.values(cart).forEach(entry => {
+                total += entry.item.price * entry.qty;
+                totalQty += entry.qty;
+                cartItemsContainer.innerHTML += `<div class="flex justify-between text-sm"><span>${entry.qty}x ${entry.item.name}</span><span>R$ ${(entry.item.price * entry.qty).toFixed(2)}</span></div>`;
+            });
+            document.getElementById('cart-count').innerText = totalQty;
+            document.getElementById('cart-total').innerText = `R$ ${total.toFixed(2)}`;
+        }
+
+        document.getElementById('cart-btn').onclick = () => document.getElementById('cart-modal').classList.remove('hidden');
+        document.getElementById('close-modal').onclick = () => document.getElementById('cart-modal').classList.add('hidden');
+        document.getElementById('clear-cart-btn').onclick = () => { cart = {}; renderUI(); };
+
+        document.getElementById('checkout-btn').onclick = () => {
+            const name = document.getElementById('customer-name').value;
+            const phone = document.getElementById('customer-phone').value;
+            const address = document.getElementById('customer-address').value;
+            const payment = document.getElementById('payment-method').value;
+            const extras = document.getElementById('extras-checkout').value;
+            const orderNotes = document.getElementById('order-notes').value;
+            
+            if(!name || !address || !payment) {
+                alert("Por favor, preencha Nome, Endereço e Pagamento.");
+                return;
+            }
+
+            const now = new Date();
+            const dataHora = now.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+
+            const itemsStr = Object.values(cart).map(e => `${e.qty}x ${e.item.name}`).join(', ');
+            
+            const msg = `*NOVO PEDIDO - ${CONFIG.storeName}*\n\n` +
+                        `*Data/Hora:* ${dataHora}\n` +
+                        `*Itens:* ${itemsStr}\n` +
+                        `*Pagamento:* ${payment}\n` +
+                        `*Total:* ${document.getElementById('cart-total').innerText}\n\n` +
+                        `*Cliente:* ${name}\n*Tel:* ${phone}\n*Endereço:* ${address}\n` +
+                        `*Talheres:* ${extras === 'sim' ? 'Sim' : 'Não'}\n` +
+                        `*Observações:* ${orderNotes || 'Nenhuma'}`;
+
+            window.open(`https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(msg)}`);
+        };
+    </script>
+</body>
+</html>
